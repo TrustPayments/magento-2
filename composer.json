@@ -1,0 +1,33 @@
+{
+	"name" : "trustpayments/magento-2",
+	"description" : "Trust Payments integration for Magento 2",
+	"keywords" : [
+		"Trust Payments",
+		"payment",
+		"php",
+		"magento",
+		"magento2"
+	],
+	"homepage" : "https://www.trustpayments.com//",
+	"license" : "Apache-2.0",
+	"authors" : [{
+			"name" : "wallee AG",
+			"homepage" : "https://wallee.com"
+		}
+	],
+	"type" : "magento2-module",
+	"version" : "1.0.84",
+	"require" : {
+		"php" : "~7.1.3||~7.2.0||~7.3.0||~7.4.0",
+		"magento/framework" : "^102.0.0",
+		"trustpayments/sdk" : "2.0.18"
+	},
+	"autoload" : {
+		"files" : [
+			"registration.php"
+		],
+		"psr-4" : {
+			"TrustPayments\\Payment\\" : ""
+		}
+	}
+}

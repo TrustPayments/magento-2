@@ -1,0 +1,148 @@
+<?php
+/**
+ * Trust Payments Magento 2
+ *
+ * This Magento 2 extension enables to process payments with Trust Payments (https://www.trustpayments.com//).
+ *
+ * @package TrustPayments_Payment
+ * @author customweb GmbH (http://www.customweb.com/)
+ * @license http://www.apache.org/licenses/LICENSE-2.0  Apache Software License (ASL 2.0)
+ */
+namespace TrustPayments\Payment\Gateway\Command;
+
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Payment\Gateway\CommandInterface;
+use Magento\Payment\Gateway\Helper\SubjectReader;
+use Psr\Log\LoggerInterface;
+use TrustPayments\Payment\Api\RefundJobRepositoryInterface;
+use TrustPayments\Payment\Helper\Locale as LocaleHelper;
+use TrustPayments\Payment\Model\ApiClient;
+use TrustPayments\Payment\Model\RefundJobFactory;
+use TrustPayments\Payment\Model\Service\LineItemReductionService;
+use TrustPayments\Payment\Model\Service\RefundService;
+use TrustPayments\Sdk\Model\RefundState;
+use TrustPayments\Sdk\Service\RefundService as ApiRefundService;
+
+/**
+ * Payment gateway command to refund a payment.
+ */
+class RefundCommand implements CommandInterface
+{
+
+    /**
+     *
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     *
+     * @var LocaleHelper
+     */
+    private $localeHelper;
+
+    /**
+     *
+     * @var LineItemReductionService
+     */
+    private $lineItemReductionService;
+
+    /**
+     *
+     * @var RefundJobFactory
+     */
+    private $refundJobFactory;
+
+    /**
+     *
+     * @var RefundJobRepositoryInterface
+     */
+    private $refundJobRepository;
+
+    /**
+     *
+     * @var RefundService
+     */
+    private $refundService;
+
+    /**
+     *
+     * @var ApiClient
+     */
+    private $apiClient;
+
+    /**
+     *
+     * @param LoggerInterface $logger
+     * @param LocaleHelper $localeHelper
+     * @param LineItemReductionService $lineItemReductionService
+     * @param RefundJobFactory $refundJobFactory
+     * @param RefundJobRepositoryInterface $refundJobRepository
+     * @param RefundService $refundService
+     * @param ApiClient $apiClient
+     */
+    public function __construct(LoggerInterface $logger, LocaleHelper $localeHelper,
+        LineItemReductionService $lineItemReductionService, RefundJobFactory $refundJobFactory,
+        RefundJobRepositoryInterface $refundJobRepository, RefundService $refundService, ApiClient $apiClient)
+    {
+        $this->logger = $logger;
+        $this->localeHelper = $localeHelper;
+        $this->lineItemReductionService = $lineItemReductionService;
+        $this->refundJobFactory = $refundJobFactory;
+        $this->refundJobRepository = $refundJobRepository;
+        $this->refundService = $refundService;
+        $this->apiClient = $apiClient;
+    }
+
+    public function execute(array $commandSubject)
+    {
+        /** @var \Magento\Sales\Model\Order\Payment $payment */
+        $payment = SubjectReader::readPayment($commandSubject)->getPayment();
+        $creditmemo = $payment->getCreditmemo();
+
+        if ($creditmemo->getTrustpaymentsExternalId() == null) {
+            try {
+                $refundJob = $this->refundJobRepository->getByOrderId($payment->getOrder()
+                    ->getId());
+            } catch (NoSuchEntityException $e) {
+                $refund = $this->refundService->createRefund($creditmemo);
+                $refundJob = $this->refundService->createRefundJob($creditmemo->getInvoice(), $refund);
+            }
+
+            try {
+                $refund = $this->apiClient->getService(ApiRefundService::class)->refund(
+                    $creditmemo->getOrder()
+                        ->getTrustpaymentsSpaceId(), $refundJob->getRefund());
+            } catch (\TrustPayments\Sdk\ApiException $e) {
+                if ($e->getResponseObject() instanceof \TrustPayments\Sdk\Model\ClientError) {
+                    $this->refundJobRepository->delete($refundJob);
+                    throw new \Magento\Framework\Exception\LocalizedException(
+                        \__($e->getResponseObject()->getMessage()));
+                } else {
+                    $creditmemo->setTrustpaymentsKeepRefundJob(true);
+                    $this->logger->critical($e);
+                    throw new \Magento\Framework\Exception\LocalizedException(
+                        \__('There has been an error while sending the refund to the gateway.'));
+                }
+            } catch (\Exception $e) {
+                $creditmemo->setTrustpaymentsKeepRefundJob(true);
+                $this->logger->critical($e);
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    \__('There has been an error while sending the refund to the gateway.'));
+            }
+
+            if ($refund->getState() == RefundState::FAILED) {
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    \__($this->localeHelper->translate($refund->getFailureReason()
+                        ->getDescription())));
+            } elseif ($refund->getState() == RefundState::PENDING || $refund->getState() == RefundState::MANUAL_CHECK) {
+                $creditmemo->setTrustpaymentsKeepRefundJob(true);
+                throw new \Magento\Framework\Exception\LocalizedException(
+                    \__('The refund was requested successfully, but is still pending on the gateway.'));
+            }
+
+            $creditmemo->setTrustpaymentsExternalId($refund->getExternalId());
+            $this->refundJobRepository->delete($refundJob);
+        }
+    }
+}
