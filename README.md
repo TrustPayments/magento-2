@@ -1,3 +1,5 @@
+> This plugin supports the Trust Enterprise Platform which can be identified by the URL for the platform ep.trustpayments.com.
+
 # Trust Payments Magento 2
 This repository contains the Magento 2 extension that enables to process payments with [Trust Payments](https://www.trustpayments.com//).
 
@@ -10,7 +12,7 @@ This repository contains the Magento 2 extension that enables to process payment
 
 ## Documentation
 
-* [Documentation](https://plugin-documentation.ep.trustpayments.com/TrustPayments/magento-2/1.1.1/docs/en/documentation.html)
+* [Documentation](https://plugin-documentation.ep.trustpayments.com/TrustPayments/magento-2/1.1.2/docs/en/documentation.html)
 
 
 ## Support
@@ -28,4 +30,4 @@ We do provide special integrations for the following one step checkouts:
 
 ## License
 
-Please see the [license file](https://github.com/TrustPayments/magento-2/blob/1.1.1/LICENSE) for more information.
+Please see the [license file](https://github.com/TrustPayments/magento-2/blob/1.1.2/LICENSE) for more information.
