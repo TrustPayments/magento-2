@@ -3,7 +3,7 @@
 # Trust Payments Magento 2
 This repository contains the Magento 2 extension that enables to process payments with [Trust Payments](https://www.trustpayments.com//).
 
-###### To use this extension, a [Trust Payments](https://www.trustpayments.com//) account is required.
+###### To use this extension, a [Trust Payments](https://ep.trustpayments.com/user/signup) account is required.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ This repository contains the Magento 2 extension that enables to process payment
 
 ## Documentation
 
-* [Documentation](https://plugin-documentation.ep.trustpayments.com/TrustPayments/magento-2/1.1.8/docs/en/documentation.html)
+* [Documentation](https://plugin-documentation.ep.trustpayments.com/TrustPayments/magento-2/1.1.9/docs/en/documentation.html)
 
 
 ## Support
@@ -30,4 +30,4 @@ We do provide special integrations for the following one step checkouts:
 
 ## License
 
-Please see the [license file](https://github.com/TrustPayments/magento-2/blob/1.1.8/LICENSE) for more information.
+Please see the [license file](https://github.com/TrustPayments/magento-2/blob/1.1.9/LICENSE) for more information.
