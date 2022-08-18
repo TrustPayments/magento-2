@@ -32,7 +32,8 @@ use TrustPayments\Sdk\Model\TransactionInvoice;
 use TrustPayments\Sdk\Model\TransactionInvoiceState;
 use TrustPayments\Sdk\Model\TransactionLineItemUpdateRequest;
 use TrustPayments\Sdk\Model\TransactionState;
-use TrustPayments\Sdk\Service\TransactionService as TransactionApiService;
+use TrustPayments\Sdk\Model\TransactionLineItemVersionCreate;
+use TrustPayments\Sdk\Service\TransactionLineItemVersionService;
 
 /**
  * Service to handle transactions in invoice context.
@@ -112,11 +113,16 @@ class TransactionService extends AbstractTransactionService
         if ($transactionInfo->getState() == TransactionState::AUTHORIZED) {
             $lineItems = $this->lineItemService->convertInvoiceLineItems($invoice, $expectedAmount);
 
-            $updateRequest = new TransactionLineItemUpdateRequest();
-            $updateRequest->setTransactionId($transactionInfo->getTransactionId());
-            $updateRequest->setNewLineItems($lineItems);
-            $this->apiClient->getService(TransactionApiService::class)->updateTransactionLineItems(
-                $transactionInfo->getSpaceId(), $updateRequest);
+            $data = [
+              'external_id' => uniqid(),
+              'line_items' => $lineItems,
+              'transaction' => (int)$transactionInfo->getTransactionId()
+            ];
+
+            $lineItemsCreate = new TransactionLineItemVersionCreate($data);
+            $this->apiClient->getService(TransactionLineItemVersionService::class)->create(
+                $transactionInfo->getSpaceId(), $lineItemsCreate
+            );
         }
     }
 
