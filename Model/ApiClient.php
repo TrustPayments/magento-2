@@ -12,6 +12,7 @@ namespace TrustPayments\Payment\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use TrustPayments\Payment\Model\ApiClientHeaders;
 
 /**
  * Service to provide Trust Payments API client.
@@ -84,6 +85,8 @@ class ApiClient
                 $client = new \TrustPayments\Sdk\ApiClient($userId, $this->encrypter->decrypt($applicationKey));
                 $client->setBasePath($this->getBaseGatewayUrl() . '/api');
                 $this->apiClient = $client;
+                $apiClientHeaders = new ApiClientHeaders();
+                $apiClientHeaders->addHeaders($this->apiClient);
             } else {
                 throw new \TrustPayments\Payment\Model\ApiClientException(
                     'The Trust Payments API user data are incomplete.');
