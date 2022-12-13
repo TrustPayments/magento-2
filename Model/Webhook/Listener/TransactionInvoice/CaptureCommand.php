@@ -82,7 +82,12 @@ class CaptureCommand extends AbstractCommand
                         }
                     }
                 }
-                $invoice->setTrustpaymentsCapturePending(false);
+
+                if ($invoice instanceof InvoiceInterface) {
+                    $invoice->setTrustpaymentsCapturePending(false);
+                } else {
+                    return false;
+                }
             }
 
             if ($transaction->getState() == TransactionState::COMPLETED) {
