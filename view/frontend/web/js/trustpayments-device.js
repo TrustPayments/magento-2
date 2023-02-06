@@ -22,18 +22,10 @@ define([
 	}
 	
 	return function(options){
-		var sessionIdentifier = $.mage.cookies.get('trustpayments_device_id');
-		if (sessionIdentifier) {
-			loadScript(options, sessionIdentifier);
-		} else {
 			$.getJSON(options.identifierUrl).fail(function (jqXHR) {
                 throw new Error(jqXHR);
             }).done(function(sessionIdentifier){
-            	$.mage.cookies.set('trustpayments_device_id', sessionIdentifier, { path: '/' });
             	loadScript(options, sessionIdentifier);
             });
-		}
-		
-		
 	}
 });
