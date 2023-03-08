@@ -19,7 +19,6 @@ use TrustPayments\Sdk\Service\LabelDescriptionGroupService;
  */
 class LabelDescriptorGroupProvider extends AbstractProvider
 {
-
     /**
      *
      * @var ApiClient

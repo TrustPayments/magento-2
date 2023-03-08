@@ -30,7 +30,6 @@ use TrustPayments\Sdk\Service\ChargeAttemptService;
  */
 class TransactionInfoManagement implements TransactionInfoManagementInterface
 {
-
     /**
      *
      * @var Helper

@@ -19,7 +19,6 @@ use TrustPayments\Sdk\Service\CurrencyService;
  */
 class CurrencyProvider extends AbstractProvider
 {
-
     /**
      *
      * @var ApiClient
